@@ -611,10 +611,11 @@ class SX126x(BaseLoRa) :
         self.setBufferBaseAddress(self._bufferIndex, (self._bufferIndex + 0xFF) % 0xFF)
 
         # save current txen and rxen pin state and set txen pin to high and rxen pin to low
-        if self._txen != None and self._rxen != None :
+        if self._txen != None:
             self._txState = self._txen.input()
-            self._rxState = self._rxen.input()
             self._txen.output(LoRaGpio.HIGH)
+        if self._rxen != None :
+            self._rxState = self._rxen.input()
             self._rxen.output(LoRaGpio.LOW)
         self._fixLoRaBw500(self._bw)
 
@@ -696,10 +697,11 @@ class SX126x(BaseLoRa) :
             self._statusWait = self.STATUS_RX_CONTINUOUS
 
         # save current txen and rxen pin state and set txen pin to low and rxen pin to high
-        if self._txen != None and self._rxen != None :
+        if self._txen != None:
             self._txState = self._txen.input()
-            self._rxState = self._rxen.input()
             self._txen.output(LoRaGpio.LOW)
+        if self._rxen != None :
+            self._rxState = self._rxen.input()
             self._rxen.output(LoRaGpio.HIGH)
 
         # set device to receive mode with configured timeout, single, or continuous operation
@@ -736,10 +738,11 @@ class SX126x(BaseLoRa) :
         if sleepPeriod > 0x00FFFFFF : sleepPeriod = 0x00FFFFFF
 
         # save current txen and rxen pin state and set txen pin to low and rxen pin to high
-        if self._txen != None and self._rxen != None :
+        if self._txen != None:
             self._txState = self._txen.input()
-            self._rxState = self._rxen.input()
             self._txen.output(LoRaGpio.LOW)
+        if self._rxen != None :
+            self._rxState = self._rxen.input()
             self._rxen.output(LoRaGpio.HIGH)
 
         # set device to receive mode with configured receive and sleep period
