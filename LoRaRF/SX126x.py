@@ -267,6 +267,7 @@ class SX126x(BaseLoRa) :
     _monitoring = None
     _bufferIndex = 0
     _payloadTxRx = 32
+    _statusDevice = STATUS_DEFAULT
     _statusWait = STATUS_DEFAULT
     _statusIrq = STATUS_DEFAULT
     _transmitTime = 0.0
@@ -1050,6 +1051,7 @@ class SX126x(BaseLoRa) :
             address & 0xFF
         )
         buf = self._readBytes(0x1D, nData+1, addr, 2)
+        self._statusDevice = buf[0]
         return buf[1:]
 
     def writeBuffer(self, offset: int, data: tuple, nData: int) :
@@ -1058,6 +1060,7 @@ class SX126x(BaseLoRa) :
 
     def readBuffer(self, offset: int, nData: int) -> tuple :
         buf = self._readBytes(0x1E, nData+1, (offset,), 1)
+        self._statusDevice = buf[0]
         return buf[1:]
 
 ### SX126X API: DIO AND IRQ CONTROL ###
@@ -1077,6 +1080,7 @@ class SX126x(BaseLoRa) :
 
     def getIrqStatus(self) -> int :
         buf = self._readBytes(0x12, 3)
+        self._statusDevice = buf[0]
         return (buf[1] << 8) | buf[2]
 
     def clearIrqStatus(self, clearIrqParam: int) :
@@ -1114,6 +1118,7 @@ class SX126x(BaseLoRa) :
 
     def getPacketType(self) -> int :
         buf = self._readBytes(0x11, 2)
+        self._statusDevice = buf[0]
         return buf[1]
 
     def setTxParams(self, power: int, rampTime: int) :
@@ -1188,22 +1193,27 @@ class SX126x(BaseLoRa) :
 
     def getStatus(self) -> int :
         buf = self._readBytes(0xC0, 1)
+        self._statusDevice = buf[0]
         return buf[0]
 
     def getRxBufferStatus(self) -> tuple :
         buf = self._readBytes(0x13, 3)
+        self._statusDevice = buf[0]
         return buf[1:3]
 
     def getPacketStatus(self) -> tuple :
         buf = self._readBytes(0x14, 4)
+        self._statusDevice = buf[0]
         return buf[1:4]
 
     def getRssiInst(self) -> int :
         buf = self._readBytes(0x15, 2)
+        self._statusDevice = buf[0]
         return buf[1]
 
     def getStats(self) -> tuple :
         buf = self._readBytes(0x10, 7)
+        self._statusDevice = buf[0]
         return (
             (buf[1] >> 8) | buf[2],
             (buf[3] >> 8) | buf[4],
@@ -1216,6 +1226,7 @@ class SX126x(BaseLoRa) :
 
     def getDeviceErrors(self) -> int :
         buf = self._readBytes(0x17, 2)
+        self._statusDevice = buf[0]
         return buf[1]
 
     def clearDeviceErrors(self) :
