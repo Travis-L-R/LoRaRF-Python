@@ -767,9 +767,6 @@ class SX127x(BaseLoRa) :
         if not self._statusIrq & 0xF0 :
             self._statusIrq = self.IRQ_RX_DONE
 
-        # clear IRQ flag from last TX or RX operation
-        self.writeRegister(self.REG_IRQ_FLAGS, 0xFF)
-
         # set pointer to RX buffer base address and get packet payload length
         self.writeRegister(self.REG_FIFO_ADDR_PTR, self.readRegister(self.REG_FIFO_RX_CURRENT_ADDR))
         self._payloadTxRx = self.readRegister(self.REG_RX_NB_BYTES)
@@ -777,6 +774,9 @@ class SX127x(BaseLoRa) :
         # call onReceive function
         if callable(self._onReceive) :
             self._onReceive()
+
+        # clear IRQ flag from last TX or RX operation
+        self.writeRegister(self.REG_IRQ_FLAGS, 0xFF)
 
     def onTransmit(self, callback) :
 

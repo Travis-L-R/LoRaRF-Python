@@ -955,14 +955,16 @@ class SX126x(BaseLoRa) :
 
         # store IRQ status
         self._statusIrq = self.getIrqStatus()
-        # clear IRQ status
-        self.clearIrqStatus(0x03FF)
+
         # get received payload length and buffer index
         (self._payloadTxRx, self._bufferIndex) = self.getRxBufferStatus()
 
         # call onReceive function
         if callable(self._onReceive) :
             self._onReceive()
+            
+        # clear IRQ status
+        self.clearIrqStatus(0x03FF)
 
     def onTransmit(self, callback) :
 
