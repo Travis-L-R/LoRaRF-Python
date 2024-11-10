@@ -1,5 +1,6 @@
 import spidev
 import gpiod
+from threading import Event
 from typing import Iterable
 
 
@@ -68,14 +69,16 @@ class LoRaGpio:
             line.release()
             chip.close()
 
-    def monitor_continuous(self, callback, timeout: float):
+    def monitor_continuous(self, callback, timeout: float, exit_event: Event):
         seconds = int(timeout)
-        while True:
+        nanoseconds = int((timeout - seconds) * 1000000000)
+        
+        while not exit_event.is_set():
             chip = gpiod.Chip(self.chip)
             line = chip.get_line(self.offset)
             try:
                 line.request(consumer="LoRaGpio", type=gpiod.LINE_REQ_EV_RISING_EDGE)
-                if line.event_wait(seconds, int((timeout - seconds) * 1000000000)):
+                if line.event_wait(seconds, nanoseconds):
                     callback()
             except: continue
             finally:

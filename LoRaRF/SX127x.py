@@ -1,7 +1,7 @@
 from .base import LoRaSpi, LoRaGpio, BaseLoRa
 from typing import Optional
 import time
-from threading import Thread
+from threading import Event, Thread
 
 class SX127x(BaseLoRa) :
     """Class for SX1276/77/78/79 LoRa chipsets from Semtech"""
@@ -166,6 +166,8 @@ class SX127x(BaseLoRa) :
 
     # Operation properties
     _monitoring = None
+    _continuous_line_wait = 1  # max wait on a GPIO line while in continuous mode (seconds)
+    _continuous_exit_event = Event()
     _payloadTxRx = 32
     _statusWait = STATUS_DEFAULT
     _statusIrq = STATUS_DEFAULT
@@ -549,12 +551,15 @@ class SX127x(BaseLoRa) :
         if self._irq != None :
             self.writeRegister(self.REG_DIO_MAPPING_1, self.DIO0_RX_DONE)
             if isinstance(self._monitoring, Thread):
-                self._monitoring.join()
-            to = self._irqTimeout/1000 if timeout == 0 else timeout/1000
+                # tell the old thread to stop
+                self._continuous_exit_event.set()
+            
             if timeout == self.RX_CONTINUOUS:
-                self._monitoring = Thread(target=self._irq.monitor_continuous, args=(self._interruptRxContinuous, to))
+                self._continuous_exit_event = Event()
+                self._monitoring = Thread(target=self._irq.monitor_continuous, args=(self._interruptRxContinuous, self._continuous_line_wait, self._continuous_exit_event))
                 self._monitoring.setDaemon(True)
             else:
+                to = self._irqTimeout/1000 if timeout == 0 else timeout/1000
                 self._monitoring = Thread(target=self._irq.monitor, args=(self._interruptRx, to))
             self._monitoring.start()
         return True
